@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -8,6 +9,9 @@ from settings.config import settings
 
 
 from products.router import router as product_router
+from importer.router import router as file_router
+
+log = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -15,7 +19,7 @@ async def lifespan(app: FastAPI):
     # startup
     yield
     # shutdown
-    print("dispose_engine")
+    log.warning("dispose_engine")
     await db_helper.dispose()
 
 
@@ -24,6 +28,7 @@ main_app = FastAPI(
 )
 
 main_app.include_router(product_router)
+main_app.include_router(file_router)
 
 
 if __name__ == "__main__":
