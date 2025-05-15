@@ -1,6 +1,13 @@
+import logging
+
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, insert, delete
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from database import db_helper
+
+log = logging.getLogger(__name__)
 
 
 class BaseDAO:
@@ -43,3 +50,41 @@ class BaseDAO:
             return result
         else:
             raise HTTPException(status_code=404, detail="Object not found")
+
+    @classmethod
+    async def add_bulk(cls, *data):
+        """
+        Для загрузки массива данных [{"id": 1}, {"id": 2}]
+        Обрабатывает его через позиционные аргументы *args.
+        """
+        try:
+            query = insert(cls.model).values(*data).returning(cls.model.id)
+            async with db_helper.session_factory() as session:
+                result = await session.execute(query)
+                await session.commit()
+                return result.mappings().first()
+        except (SQLAlchemyError, Exception) as e:
+            if isinstance(e, SQLAlchemyError):
+                msg = "Database Exc"
+            elif isinstance(e, Exception):
+                msg = "Unknown Exc"
+            msg += ": Cannot bulk insert data into table"
+
+            log.error(msg, extra={"table": cls.model.__tablename__}, exc_info=True)
+            return None
+
+    @classmethod
+    async def get_excel_table(cls):
+        async with db_helper.session_factory() as session:
+            result = await session.execute(select(cls.model))
+            objects = result.scalars().all()
+            return [
+                {c.name: getattr(obj, c.name) for c in cls.model.__table__.columns}
+                for obj in objects
+            ]
+
+    @classmethod
+    async def del_one(cls, session: AsyncSession, **filter_by):
+        query = delete(cls.model).filter_by(**filter_by)
+        await session.execute(query)
+        await session.commit()

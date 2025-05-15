@@ -16,3 +16,5 @@ class OrderItem(Base):
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
     amount: Mapped[int] = mapped_column(nullable=False)
     # orders: Mapped[["Order", "Product"]] = relationship(["Order", "Product"], back_populates="order_item")
+    order = relationship("Order", back_populates="items")
+    product = relationship("Product")

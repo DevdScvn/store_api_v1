@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class Product(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(nullable=False, index=True)
+    name: Mapped[str] = mapped_column(nullable=False)
     description: Mapped[str]
     price: Mapped[float] = mapped_column(nullable=False)
     amount: Mapped[int] = mapped_column(default=0, nullable=False)

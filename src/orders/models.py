@@ -24,4 +24,4 @@ class Order(Base):
     )
     status: Mapped[OrderStatus]
     # order_item: Mapped["OrderItem"] = relationship("OrderItem", back_populates="orders")
-
+    items = relationship("OrderItem", back_populates="order")

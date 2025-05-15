@@ -9,6 +9,7 @@ from settings.config import settings
 
 
 from products.router import router as product_router
+from orders.router import router as order_router
 from importer.router import router as file_router
 
 log = logging.getLogger(__name__)
@@ -29,6 +30,7 @@ main_app = FastAPI(
 
 main_app.include_router(product_router)
 main_app.include_router(file_router)
+main_app.include_router(order_router)
 
 
 if __name__ == "__main__":
