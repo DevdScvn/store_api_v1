@@ -1,6 +1,7 @@
 from typing import Annotated, Sequence
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -27,6 +28,7 @@ async def create_product(session: Annotated[AsyncSession, Depends(db_helper.sess
 
 
 @router.get("", response_model=Sequence[SProductRead])
+@cache(expire=60)
 async def get_products_pagination(session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
                                   skip: int = 0, limit: int = 10):
     """

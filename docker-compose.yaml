@@ -1,5 +1,18 @@
 services:
 
+  app:
+    build:
+      dockerfile: "./Dockerfile"
+      context: ./
+    container_name: web
+    environment:
+      APP_CONFIG__DB__URL: "postgresql+asyncpg://user:password@pg:5432/store"
+    ports:
+      - "5050:8000"
+    depends_on:
+      - redis
+      - pg
+
   pg:
     image: postgres
     environment:
@@ -8,3 +21,38 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5436:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  grafana:
+    image: grafana/grafana:10.4.18
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    depends_on:
+      - pg
+      - app
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:v2.53.4
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - 9090:9090
+    depends_on:
+      - pg
+      - app
+
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+
+volumes:
+  redis_data:
+  prometheus-data:
